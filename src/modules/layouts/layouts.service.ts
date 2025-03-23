@@ -10,6 +10,11 @@ export class LayoutService {
   async create(layoutData: Partial<Layout>): Promise<Layout> {
     try {
       const newLayout = new this.layoutModel(layoutData);
+
+      if (newLayout.isActive) {
+        await this.layoutModel.updateMany({ isActive: true }, { isActive: false });
+      }
+
       return newLayout.save();
     } catch (error) {
       throw new HttpException(`Something went wrong - ${error}`, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -19,9 +24,11 @@ export class LayoutService {
   async update(id: string, layoutData: Partial<Layout>): Promise<Layout> {
     try {
       const updatedLayout = await this.layoutModel.findByIdAndUpdate(id, layoutData, { new: true });
+
       if (!updatedLayout) {
         throw new NotFoundException(`Layout with ID ${id} not found`);
       }
+
       return updatedLayout;
     } catch (error) {
       throw new HttpException(`Something went wrong - ${error}`, HttpStatus.INTERNAL_SERVER_ERROR);
